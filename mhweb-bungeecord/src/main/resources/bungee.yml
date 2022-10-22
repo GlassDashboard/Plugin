@@ -1,0 +1,4 @@
+name: Amber
+version: '${project.version}'
+main: me.santio.amber.AmberBungeeCord
+description: '${project.description}'
