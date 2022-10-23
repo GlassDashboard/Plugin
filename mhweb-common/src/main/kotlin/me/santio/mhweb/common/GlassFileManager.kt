@@ -109,7 +109,10 @@ object GlassFileManager {
 
     fun uploadFile(location: FileLocation, id: String) {
         val file = location.getFile()
-        if (!file.exists()) file.createNewFile()
+        if (!file.exists()) {
+            if (!file.parentFile.exists()) file.parentFile.mkdirs()
+            file.createNewFile()
+        }
 
         // id provided here is a 'trusted' source, so we don't need to encode the command
         UPLOADING[id] = location

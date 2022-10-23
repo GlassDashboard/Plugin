@@ -66,7 +66,7 @@ object Glass {
         logs.add(Logged(timestamp, log))
         if (logs.size > 100) logs.removeAt(0)
 
-        if (send) socket?.emit("CONSOLE", json.encodeToString(log))
+        if (send) socket?.emit("CONSOLE_LOG", json.encodeToString(Logged(timestamp, log)))
     }
 
     fun updatePlayerList() {
