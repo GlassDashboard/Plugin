@@ -13,7 +13,9 @@ class FetchHistoryPacket: SocketEvent("FETCH_CONSOLE_HISTORY") {
     override fun onEvent(vararg data: Any) {
 
         val acknowledgement = data[0] as Ack
-        acknowledgement.call(Glass.json.encodeToString(ConsoleHistory(Glass.logs)))
+        val logs = Glass.json.encodeToString(ConsoleHistory(Glass.logs))
+
+        acknowledgement.call(logs)
 
     }
 

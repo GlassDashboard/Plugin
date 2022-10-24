@@ -36,6 +36,7 @@ object SocketHandler {
 
         socket.on("reconnect") {
             Glass.log("Reconnected to Glass WebSocket!")
+            loadEvents()
         }
 
         socket.on("reconnect_attempt") {

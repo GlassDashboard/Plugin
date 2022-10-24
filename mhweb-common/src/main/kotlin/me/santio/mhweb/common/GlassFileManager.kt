@@ -58,7 +58,7 @@ object GlassFileManager {
                 if (size > 3 * 1024 * 1024) {
                     fileData.content = "File is too large to be displayed"
                 } else {
-                    fileData.content = String(Files.readAllBytes(file.toPath()), Charsets.UTF_8)
+                    fileData.content = file.readText()
                 }
             } else {
                 val children: MutableList<FileData> = mutableListOf()
@@ -84,6 +84,14 @@ object GlassFileManager {
         }
 
         return files
+    }
+
+    fun createFile(location: FileLocation) {
+        val file = location.getFile()
+        if (file.exists()) return
+
+        if (!file.parentFile.exists()) file.parentFile.mkdirs()
+        file.createNewFile()
     }
 
     fun downloadFile(location: FileLocation, acknowledgement: Ack) {

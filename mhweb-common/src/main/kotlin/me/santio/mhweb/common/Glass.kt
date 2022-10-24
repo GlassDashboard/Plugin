@@ -64,7 +64,7 @@ object Glass {
 
     fun sendLog(timestamp: String, log: Loggable, send: Boolean = false) {
         logs.add(Logged(timestamp, log))
-        if (logs.size > 100) logs.removeAt(0)
+        if (logs.size > 500) logs.removeAt(0)
 
         if (send) socket?.emit("CONSOLE_LOG", json.encodeToString(Logged(timestamp, log)))
     }
