@@ -9,7 +9,9 @@ import me.santio.mhweb.common.utils.Zipper
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.absolutePathString
 
 // Presents a file manager wrapper for the server.
 
@@ -17,7 +19,7 @@ import java.util.*
 object GlassFileManager {
 
     private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb")
-    private val HOME_DIR: String = System.getenv("ROOT_SERVER") ?: System.getenv("HOME") ?: "/"
+    private val HOME_DIR: String = System.getenv("ROOT_SERVER") ?: System.getenv("HOME") ?: System.getenv("user.dir") ?: Path.of("").toAbsolutePath().absolutePathString()
     private val UPLOADING: MutableMap<String, FileLocation> = mutableMapOf()
 
     fun fileFromPath(path: String, root: Boolean = false): File {
@@ -98,21 +100,22 @@ object GlassFileManager {
         val file = location.getFile()
         if (!file.exists()) return
 
-        val id = UUID.randomUUID().toString()
-        acknowledgement.call(id)
-
         // Prefixed since this is not a trusted source
+        val id = UUID.randomUUID().toString()
         val room = "download-$id"
 
         if (file.isDirectory) {
             val zip = Zipper.zipFolder(file)
             if (zip != null) {
+                acknowledgement.call(id, zip.length())
                 SocketHandler.sendFile(room, zip) {
                     zip.delete()
                 }
             }
+        } else {
+            SocketHandler.sendFile(room, file)
+            acknowledgement.call(id, file.length())
         }
-        else SocketHandler.sendFile(room, file)
     }
 
     fun uploadFile(location: FileLocation, id: String) {
@@ -161,7 +164,17 @@ object GlassFileManager {
         val nextFile = next.getFile()
         if (!previousFile.exists()) return
 
+        if (!nextFile.parentFile.exists()) nextFile.parentFile.mkdirs()
         previousFile.renameTo(nextFile)
+    }
+
+    fun copyFile(previous: FileLocation, to: FileLocation) {
+        val previousFile = previous.getFile()
+        val nextFile = to.getFile()
+        if (!previousFile.exists()) return
+
+        if (!nextFile.parentFile.exists()) nextFile.parentFile.mkdirs()
+        previousFile.copyTo(nextFile)
     }
 
 }
