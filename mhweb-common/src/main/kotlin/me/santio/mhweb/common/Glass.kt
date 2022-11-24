@@ -1,6 +1,5 @@
 package me.santio.mhweb.common
 
-import io.socket.client.Ack
 import io.socket.client.Socket
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -8,20 +7,11 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import me.santio.mhweb.common.adapter.ServerAdapter
-import me.santio.mhweb.common.models.packets.FileData
 import me.santio.mhweb.common.models.logs.Loggable
 import me.santio.mhweb.common.models.logs.Logged
 import me.santio.mhweb.common.models.logs.impl.CommandLog
 import me.santio.mhweb.common.models.logs.impl.ConsoleLog
-import me.santio.mhweb.common.models.packets.FileLocation
 import me.santio.mhweb.common.socket.SocketHandler
-import me.santio.mhweb.common.socketOld.packets.client.FileStreamPacket
-import me.santio.mhweb.common.socketOld.packets.client.PlayerListPacket
-import me.santio.mhweb.common.utils.Zipper
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.util.*
 
 object Glass {
     lateinit var server: ServerAdapter

@@ -2,6 +2,7 @@ package me.santio.mhweb.spigot
 
 import me.santio.mhweb.common.Glass
 import me.santio.mhweb.common.adapter.ServerAdapter
+import me.santio.mhweb.common.adapter.ServerPlugin
 import me.santio.mhweb.common.models.packets.TinyPlayer
 import me.santio.mhweb.spigot.logger.LogAppender
 import org.bukkit.Bukkit
@@ -10,6 +11,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 import java.util.function.Consumer
 
 class GlassSpigot : JavaPlugin(), Listener {
@@ -28,14 +30,23 @@ class GlassSpigot : JavaPlugin(), Listener {
                 })
             }
 
-            override fun async(code: () -> Unit) {
-                server.scheduler.runTaskAsynchronously(this@GlassSpigot, Runnable(code))
-            }
-
             override fun getOnlinePlayers(): List<TinyPlayer> {
                 return server.onlinePlayers.map {
                     TinyPlayer(it.name, it.uniqueId.toString(), it.isOp)
                 }
+            }
+
+            override fun loadPlugin(plugin: File): ServerPlugin? {
+                val bukkitPlugin = server.pluginManager.loadPlugin(plugin) ?: return null
+                return bukkitPlugin.toGlassPlugin()
+            }
+
+            override fun unloadPlugin(plugin: ServerPlugin) {
+                server.pluginManager.disablePlugin(server.pluginManager.getPlugin(plugin.name)!!)
+            }
+
+            override fun getPlugins(): List<ServerPlugin> {
+                return server.pluginManager.plugins.map { it.toGlassPlugin() }
             }
         })
 
