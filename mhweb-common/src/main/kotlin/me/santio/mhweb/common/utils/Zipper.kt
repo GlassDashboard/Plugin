@@ -1,6 +1,5 @@
 package me.santio.mhweb.common.utils
 
-import me.santio.mhweb.common.Glass
 import me.santio.mhweb.common.GlassFileManager
 import net.lingala.zip4j.ZipFile
 import java.io.File
@@ -19,6 +18,11 @@ object Zipper {
         zip.addFolder(source)
 
         return tempFile
+    }
+
+    fun unzip(source: File) {
+        val zip = ZipFile(source)
+        zip.extractAll(source.parentFile.absolutePath)
     }
 
 }

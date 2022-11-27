@@ -177,4 +177,11 @@ object GlassFileManager {
         previousFile.copyTo(nextFile)
     }
 
+    fun unarchive(path: FileLocation) {
+        val file = path.getFile()
+        if (!file.exists()) return
+
+        Zipper.unzip(file)
+    }
+
 }

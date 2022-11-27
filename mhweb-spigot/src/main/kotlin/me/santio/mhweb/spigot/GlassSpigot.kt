@@ -32,7 +32,7 @@ class GlassSpigot : JavaPlugin(), Listener {
 
             override fun getOnlinePlayers(): List<TinyPlayer> {
                 return server.onlinePlayers.map {
-                    TinyPlayer(it.name, it.uniqueId.toString(), it.isOp)
+                    TinyPlayer(it.name, it.uniqueId.toString(), it.isOp, it.isWhitelisted)
                 }
             }
 
