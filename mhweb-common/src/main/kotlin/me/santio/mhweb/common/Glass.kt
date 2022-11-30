@@ -7,6 +7,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import me.santio.mhweb.common.adapter.ServerAdapter
+import me.santio.mhweb.common.models.TrackedCount
 import me.santio.mhweb.common.models.logs.Loggable
 import me.santio.mhweb.common.models.logs.Logged
 import me.santio.mhweb.common.models.logs.impl.CommandLog
@@ -59,8 +60,18 @@ object Glass {
         if (send) socket?.emit("CONSOLE_LOG", json.encodeToString(Logged(timestamp, log)))
     }
 
-    fun updatePlayerList() {
-        socket?.emit("PLAYER_LIST", json.encodeToString(server.getOnlinePlayers()))
+    fun updateCount(track: TrackedCount) {
+        when (track) {
+            TrackedCount.ONLINE_PLAYERS -> socket?.emit("PLAYER_LIST", json.encodeToString(server.getOnlinePlayers()))
+            TrackedCount.ADMINISTRATOR_PLAYERS -> socket?.emit("ADMINISTRATOR_LIST", json.encodeToString(server.getServerAdministrators()))
+            TrackedCount.WHITELISTED_PLAYERS -> socket?.emit("WHITELIST", json.encodeToString(server.getWhitelistedPlayers()))
+            TrackedCount.BLACKLISTED_PLAYERS -> socket?.emit("BLACKLIST", json.encodeToString(server.getBannedPlayers()))
+            TrackedCount.ALL -> {
+                TrackedCount.values()
+                    .filter{ it != track }
+                    .forEach { updateCount(it) }
+            }
+        }
     }
 
     enum class ServerType {

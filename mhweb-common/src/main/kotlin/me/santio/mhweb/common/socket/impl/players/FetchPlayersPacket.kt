@@ -1,10 +1,8 @@
-package me.santio.mhweb.common.socket.impl
+package me.santio.mhweb.common.socket.impl.players
 
 import io.socket.client.Ack
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import me.santio.mhweb.common.Glass
-import me.santio.mhweb.common.models.packets.FileLocation
 import me.santio.mhweb.common.socket.SocketEvent
 
 class FetchPlayersPacket: SocketEvent("FETCH_PLAYERS") {
