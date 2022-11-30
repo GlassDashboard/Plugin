@@ -64,14 +64,47 @@ object GlassSpigotAdapter: ServerAdapter() {
 
     override fun kickPlayer(uuid: UUID, reason: String): Boolean {
         val player = Bukkit.getServer().getPlayer(uuid) ?: return false
-        player.kickPlayer(reason)
+        Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
+            player.kickPlayer(reason)
+        })
         return true
     }
 
     override fun banPlayer(uuid: UUID, reason: String): Boolean {
         val player = Bukkit.getServer().getPlayer(uuid) ?: return false
-        Bukkit.getServer().getBanList(BanList.Type.NAME).addBan(player.name, reason, null, null)
-        player.kickPlayer(reason)
+
+        Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
+            Bukkit.getServer().getBanList(BanList.Type.NAME).addBan(player.name, reason, null, null)
+            player.kickPlayer(reason)
+        })
+
+        return true
+    }
+
+    override fun pardonPlayer(uuid: UUID): Boolean {
+        val player = Bukkit.getServer().getOfflinePlayer(uuid)
+        val name = player.name ?: return false
+
+        Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
+            Bukkit.getServer().getBanList(BanList.Type.NAME).pardon(name)
+        })
+
+        return true
+    }
+
+    override fun setWhitelisted(uuid: UUID, state: Boolean): Boolean {
+        val player = Bukkit.getServer().getOfflinePlayer(uuid)
+        Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
+            player.isWhitelisted = state
+        })
+        return true
+    }
+
+    override fun setAdministrator(uuid: UUID, state: Boolean): Boolean {
+        val player = Bukkit.getServer().getOfflinePlayer(uuid)
+        Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
+            player.isOp = state
+        })
         return true
     }
 }

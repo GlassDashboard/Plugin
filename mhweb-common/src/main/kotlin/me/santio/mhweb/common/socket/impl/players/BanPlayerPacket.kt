@@ -16,8 +16,8 @@ class BanPlayerPacket: SocketEvent("BAN_PLAYER") {
 
         val acknowledgement = data[2] as Ack
 
-        val kicked = Glass.server.banPlayer(uuid, reason)
-        acknowledgement.call(kicked)
+        val success = Glass.server.banPlayer(uuid, reason)
+        acknowledgement.call(success)
 
     }
 

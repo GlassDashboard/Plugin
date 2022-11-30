@@ -14,6 +14,9 @@ abstract class ServerAdapter {
 
     abstract fun kickPlayer(uuid: UUID, reason: String): Boolean
     abstract fun banPlayer(uuid: UUID, reason: String): Boolean
+    abstract fun pardonPlayer(uuid: UUID): Boolean
+    abstract fun setWhitelisted(uuid: UUID, state: Boolean): Boolean
+    abstract fun setAdministrator(uuid: UUID, state: Boolean): Boolean
 
     abstract fun getPlugins(): List<ServerPlugin>
     abstract fun loadPlugin(plugin: File): ServerPlugin?

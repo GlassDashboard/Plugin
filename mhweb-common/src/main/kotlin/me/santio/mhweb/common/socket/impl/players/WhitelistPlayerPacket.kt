@@ -5,18 +5,15 @@ import me.santio.mhweb.common.Glass
 import me.santio.mhweb.common.socket.SocketEvent
 import java.util.*
 
-class KickPlayerPacket: SocketEvent("KICK_PLAYER") {
+class WhitelistPlayerPacket: SocketEvent("SET_WHITELIST") {
 
     override fun onEvent(vararg data: Any) {
 
         val uuid = UUID.fromString(data[0] as String)
-
-        var reason: String? = data[1] as String?
-        if (reason == null) reason = "No reason provided"
-
+        val state: Boolean = data[1] as Boolean
         val acknowledgement = data[2] as Ack
 
-        val success = Glass.server.kickPlayer(uuid, reason)
+        val success = Glass.server.setWhitelisted(uuid, state)
         acknowledgement.call(success)
 
     }
