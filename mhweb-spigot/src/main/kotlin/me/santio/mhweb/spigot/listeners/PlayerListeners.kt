@@ -14,13 +14,13 @@ object PlayerListeners: Listener {
 
     @EventHandler
     private fun onPlayerJoin(event: PlayerJoinEvent) {
-        Glass.updateCount(TrackedCount.ONLINE_PLAYERS)
+        Glass.updateCount(TrackedCount.ALL)
     }
 
     @EventHandler
     private fun onPlayerQuit(event: PlayerQuitEvent) {
         Bukkit.getScheduler().runTaskLater(GlassSpigot.getInstance(), Consumer {
-            Glass.updateCount(TrackedCount.ONLINE_PLAYERS)
+            Glass.updateCount(TrackedCount.ALL)
         }, 1)
     }
 
