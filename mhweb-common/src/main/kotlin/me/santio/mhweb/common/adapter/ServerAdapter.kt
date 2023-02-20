@@ -4,21 +4,22 @@ import me.santio.mhweb.common.models.packets.TinyPlayer
 import java.io.File
 import java.util.*
 
-abstract class ServerAdapter {
-    abstract fun executeCommand(command: String)
+interface ServerAdapter {
+    fun executeCommand(command: String)
+    fun getServerVersion(): String
 
-    abstract fun getOnlinePlayers(): List<TinyPlayer>
-    abstract fun getWhitelistedPlayers(): List<TinyPlayer>
-    abstract fun getServerAdministrators(): List<TinyPlayer>
-    abstract fun getBannedPlayers(): List<TinyPlayer>
+    fun getOnlinePlayers(): List<TinyPlayer>
+    fun getWhitelistedPlayers(): List<TinyPlayer>
+    fun getServerAdministrators(): List<TinyPlayer>
+    fun getBannedPlayers(): List<TinyPlayer>
 
-    abstract fun kickPlayer(uuid: UUID, reason: String): Boolean
-    abstract fun banPlayer(uuid: UUID, reason: String): Boolean
-    abstract fun pardonPlayer(uuid: UUID): Boolean
-    abstract fun setWhitelisted(uuid: UUID, state: Boolean): Boolean
-    abstract fun setAdministrator(uuid: UUID, state: Boolean): Boolean
+    fun kickPlayer(uuid: UUID, reason: String): Boolean
+    fun banPlayer(uuid: UUID, reason: String): Boolean
+    fun pardonPlayer(uuid: UUID): Boolean
+    fun setWhitelisted(uuid: UUID, state: Boolean): Boolean
+    fun setAdministrator(uuid: UUID, state: Boolean): Boolean
 
-    abstract fun getPlugins(): List<ServerPlugin>
-    abstract fun loadPlugin(plugin: File): ServerPlugin?
-    abstract fun unloadPlugin(plugin: ServerPlugin)
+    fun getPlugins(): List<ServerPlugin>
+    fun loadPlugin(plugin: File): ServerPlugin?
+    fun unloadPlugin(plugin: ServerPlugin)
 }

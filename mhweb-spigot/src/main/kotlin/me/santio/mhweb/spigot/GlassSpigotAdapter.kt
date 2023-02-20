@@ -1,5 +1,6 @@
 package me.santio.mhweb.spigot
 
+import kong.unirest.Unirest
 import me.santio.mhweb.common.adapter.ServerAdapter
 import me.santio.mhweb.common.adapter.ServerPlugin
 import me.santio.mhweb.common.models.packets.TinyPlayer
@@ -10,11 +11,11 @@ import java.io.File
 import java.util.*
 import java.util.function.Consumer
 
-object GlassSpigotAdapter: ServerAdapter() {
+object GlassSpigotAdapter: ServerAdapter {
 
     fun OfflinePlayer.toTinyPlayer(): TinyPlayer {
         return TinyPlayer(
-            name ?: "FETCH_FAILED",
+            name ?: name(),
             uniqueId.toString(),
             isOp,
             isWhitelisted,
@@ -22,10 +23,22 @@ object GlassSpigotAdapter: ServerAdapter() {
         )
     }
 
+    fun OfflinePlayer.name(): String {
+        return Unirest.get("https://api.ashcon.app/mojang/v2/user/${uniqueId}")
+            .asJson()
+            .body
+            .getObject()
+            .getString("username")
+    }
+
     override fun executeCommand(command: String) {
         Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
             Bukkit.getServer().dispatchCommand(Bukkit.getServer().consoleSender, command)
         })
+    }
+
+    override fun getServerVersion(): String {
+        return Bukkit.getServer().bukkitVersion.split("-")[0]
     }
 
     override fun getOnlinePlayers(): List<TinyPlayer> {
@@ -71,11 +84,13 @@ object GlassSpigotAdapter: ServerAdapter() {
     }
 
     override fun banPlayer(uuid: UUID, reason: String): Boolean {
-        val player = Bukkit.getServer().getPlayer(uuid) ?: return false
+        val player = Bukkit.getServer().getOfflinePlayer(uuid)
 
         Bukkit.getServer().scheduler.runTask(GlassSpigot.getInstance(), Consumer {
-            Bukkit.getServer().getBanList(BanList.Type.NAME).addBan(player.name, reason, null, null)
-            player.kickPlayer(reason)
+            val name = player.name()
+            Bukkit.getServer().getBanList(BanList.Type.NAME).addBan(name, reason, null, "Glass")
+
+            if (player.isOnline) (Bukkit.getPlayer(uuid))!!.kickPlayer(reason)
         })
 
         return true

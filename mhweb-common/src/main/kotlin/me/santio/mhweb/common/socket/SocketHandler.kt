@@ -3,6 +3,7 @@ package me.santio.mhweb.common.socket
 import io.socket.client.IO
 import io.socket.client.Socket
 import me.santio.mhweb.common.Glass
+import org.json.JSONObject
 import org.reflections.Reflections
 import java.io.File
 import java.nio.ByteBuffer
@@ -16,7 +17,12 @@ object SocketHandler {
 
         val socket =  IO.Options.builder()
             .setPath("/socket")
-            .setAuth(mapOf("token" to token, "type" to "PLUGIN", "minecraft" to Glass.serverType.name))
+            .setAuth(mapOf(
+                "token" to token,
+                "type" to "PLUGIN",
+                "minecraft" to Glass.serverType.name,
+                "version" to Glass.server.getServerVersion()
+            ))
             .build()
             .let { IO.socket(uri, it).connect() }
 
@@ -27,6 +33,14 @@ object SocketHandler {
 
         socket.on("connect_error") {
             Glass.log("Failed to connect to Glass WebSocket!")
+
+            val error = it[0] as? JSONObject
+            if (error != null) {
+                Glass.log(error.getString("message"))
+
+                Glass.log("Server type: ${Glass.serverType.name}")
+                Glass.log("Server version: ${Glass.server.getServerVersion()}")
+            }
         }
 
         socket.on("disconnect") {

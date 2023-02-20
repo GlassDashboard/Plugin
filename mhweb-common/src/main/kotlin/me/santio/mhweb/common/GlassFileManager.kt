@@ -21,6 +21,7 @@ object GlassFileManager {
     private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb")
     private val UPLOADING: MutableMap<String, FileLocation> = mutableMapOf()
     val HOME_DIR: String = System.getenv("ROOT_SERVER") ?: System.getenv("HOME") ?: System.getenv("user.dir") ?: Path.of("").toAbsolutePath().absolutePathString()
+    val DB_FILE = File("$HOME_DIR/.glass/data.db")
 
     fun fileFromPath(path: String, root: Boolean = false): File {
         var newPath = path
