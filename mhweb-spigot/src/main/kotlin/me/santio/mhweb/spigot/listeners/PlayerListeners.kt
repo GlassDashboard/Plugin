@@ -8,7 +8,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import java.util.function.Consumer
 
 object PlayerListeners: Listener {
 
@@ -19,7 +18,7 @@ object PlayerListeners: Listener {
 
     @EventHandler
     private fun onPlayerQuit(event: PlayerQuitEvent) {
-        Bukkit.getScheduler().runTaskLater(GlassSpigot.getInstance(), Consumer {
+        Bukkit.getScheduler().runTaskLater(GlassSpigot.getInstance(), {
             Glass.updateCount(TrackedCount.ALL)
         }, 1)
     }
