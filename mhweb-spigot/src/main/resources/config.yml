@@ -1,6 +1,6 @@
 # Base API - This is the socket uri for the base API
 # You do NOT need to change this unless requested to by a developer
-base_uri: ws://api.glass.santio.me/
+base_uri: wss://glassapi.santio.me/
 
 # Server Token - Enter your token here provided by the website
 # You can find this on the website by clicking Setup on the dashboard
