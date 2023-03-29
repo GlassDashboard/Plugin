@@ -43,9 +43,14 @@ object SocketHandler {
             }
         }
 
+        // Backend goes offline, give it 20s to come back online before trying to go through reconnecting
         socket.on("disconnect") {
             Glass.log("Disconnected from Glass WebSocket!")
             socket.off()
+
+            Timer("GlassReconnect", false).schedule(5000) {
+                connect(uri, token)
+            }
         }
 
         socket.on("reconnect") {
