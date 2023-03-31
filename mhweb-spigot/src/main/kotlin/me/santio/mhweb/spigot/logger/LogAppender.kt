@@ -8,7 +8,7 @@ import org.apache.logging.log4j.core.Logger
 import org.apache.logging.log4j.core.appender.AbstractAppender
 import org.apache.logging.log4j.core.config.Property
 
-class LogAppender: AbstractAppender("MHWeb", null, null, false, Property.EMPTY_ARRAY) {
+class LogAppender: AbstractAppender("Glass", null, null, false, Property.EMPTY_ARRAY) {
     init {
         super.start()
         (LogManager.getRootLogger() as Logger).addAppender(this)
@@ -20,13 +20,15 @@ class LogAppender: AbstractAppender("MHWeb", null, null, false, Property.EMPTY_A
     }
 
     override fun append(e: LogEvent) {
-        val message = if (e.message.throwable != null) e.message.throwable.message
-        else e.message.formattedMessage
+        // Get bytes from log
+        val bytes = e.message.formattedMessage.toByteArray()
+        val message = String(bytes, Charsets.UTF_8)
 
+        // Send log to glass
         Glass.sendLog(
-            e.instant.epochMillisecond.toString(),
+            e.timeMillis.toString(),
             ConsoleLog(
-                message ?: "[Glass] Invalid log message provided",
+                message,
                 e.level.standardLevel.name,
             ),
             true

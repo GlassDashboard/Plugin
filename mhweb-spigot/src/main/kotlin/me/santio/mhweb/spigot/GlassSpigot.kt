@@ -34,7 +34,8 @@ class GlassSpigot : JavaPlugin(), Listener {
         }
 
         // Check if the server is a spigot or paper server
-        val serverType = if (server.bukkitVersion.contains("Paper")) Glass.ServerType.PAPER
+        val serverType = if (server.bukkitVersion.contains("Paper")
+            || server.version.contains("Paper")) Glass.ServerType.PAPER
         else Glass.ServerType.SPIGOT
 
         // Login to glass
