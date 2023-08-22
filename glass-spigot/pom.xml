@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>me.santio</groupId>
 		<artifactId>Glass</artifactId>
-		<version>1.0</version>
+		<version>1.1.0</version>
 	</parent>
 
 	<artifactId>glass-spigot</artifactId>
 	<packaging>jar</packaging>
 
-	<name>MHWeb Spigot</name>
+	<name>glass-spigot</name>
 	<description>desc</description>
 
     <properties>
@@ -19,7 +19,7 @@
     </properties>
 
     <build>
-		<finalName>MHWeb Spigot</finalName>
+		<finalName>glass-spigot</finalName>
 		<sourceDirectory>src/main/kotlin</sourceDirectory>
 		<plugins>
 			<plugin>
