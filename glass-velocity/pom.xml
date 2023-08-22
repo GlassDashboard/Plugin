@@ -4,7 +4,7 @@
 
 	<parent>
 		<groupId>me.santio</groupId>
-		<artifactId>glass</artifactId>
+		<artifactId>Glass</artifactId>
 		<version>1.0</version>
 	</parent>
 
