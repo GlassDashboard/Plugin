@@ -4,8 +4,8 @@
 //import kotlinx.serialization.encodeToString
 //import kotlinx.serialization.decodeFromString
 //import me.santio.glass.common.Glass
-//import me.santio.glass.common.GlassFileManager
-//import me.santio.glass.common.models.packets.ResolvablePath
+//import GlassFileManager
+//import ResolvablePath
 //import me.santio.glass.common.socket.SocketEvent
 //
 //class FetchAllFilesPacket: SocketEvent("ALL_FILES") {

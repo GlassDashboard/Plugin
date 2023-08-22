@@ -5,7 +5,7 @@ import me.santio.glass.common.Glass
 import me.santio.glass.common.socket.SocketEvent
 import java.util.*
 
-class KickPlayerPacket: me.santio.glass.common.socket.SocketEvent("KICK_PLAYER") {
+class KickPlayerPacket : SocketEvent("KICK_PLAYER") {
 
     override fun onEvent(vararg data: Any) {
 
@@ -16,7 +16,7 @@ class KickPlayerPacket: me.santio.glass.common.socket.SocketEvent("KICK_PLAYER")
 
         val acknowledgement = data[2] as Ack
 
-        val success = me.santio.glass.common.Glass.server.kickPlayer(uuid, reason)
+        val success = Glass.server.kickPlayer(uuid, reason)
         acknowledgement.call(success)
 
     }

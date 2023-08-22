@@ -10,5 +10,5 @@ data class FileMetadata(
     val size: Long,
     val lastModified: Long,
     val content: String?,
-    val children: List<me.santio.glass.common.models.packets.FileMetadata>
+    val children: List<FileMetadata>
 )

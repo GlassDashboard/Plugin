@@ -9,7 +9,7 @@ data class Audit(
 ) {
 
     fun commit() {
-        me.santio.glass.common.database.Database.connection.prepareStatement(
+        Database.connection.prepareStatement(
             "INSERT INTO audit_log(user, message, timestamp) VALUES(?, ?, ?);"
         ).apply {
             setString(1, user)

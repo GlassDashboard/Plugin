@@ -6,10 +6,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import me.santio.glass.common.adapter.ServerAdapter
-import me.santio.glass.common.models.TrackedCount
-import me.santio.glass.common.models.logs.Loggable
-import me.santio.glass.common.models.logs.Logged
 import me.santio.glass.common.models.logs.impl.CommandLog
 import me.santio.glass.common.models.logs.impl.ConsoleLog
 import me.santio.glass.common.socket.SocketHandler
@@ -20,33 +16,33 @@ object Glass {
     val json = Json {
         serializersModule = SerializersModule {
             polymorphic(me.santio.glass.common.models.logs.Loggable::class) {
-                subclass(me.santio.glass.common.models.logs.impl.CommandLog::class)
-                subclass(me.santio.glass.common.models.logs.impl.ConsoleLog::class)
+                subclass(CommandLog::class)
+                subclass(ConsoleLog::class)
             }
         }
     }
 
     var token: String? = null
-    var serverType: me.santio.glass.common.Glass.ServerType = me.santio.glass.common.Glass.ServerType.SPIGOT
+    var serverType: ServerType = ServerType.SPIGOT
     var socket: Socket? = null
 
     val logs: MutableList<me.santio.glass.common.models.logs.Logged> = mutableListOf()
 
     fun setServerAdapter(server: me.santio.glass.common.adapter.ServerAdapter) {
-        me.santio.glass.common.Glass.server = server
+        Glass.server = server
     }
 
-    fun setServerToken(uri: String, token: String, type: me.santio.glass.common.Glass.ServerType) {
-        me.santio.glass.common.Glass.token = token
+    fun setServerToken(uri: String, token: String, type: ServerType) {
+        Glass.token = token
 
         // Initiate web socket connection to the api server
-        me.santio.glass.common.Glass.log("Attempting to connect to Glass...")
-        me.santio.glass.common.Glass.serverType = type
-        me.santio.glass.common.Glass.socket = me.santio.glass.common.socket.SocketHandler.connect(uri, token)
+        log("Attempting to connect to Glass...")
+        serverType = type
+        socket = SocketHandler.connect(uri, token)
     }
 
     fun close() {
-        me.santio.glass.common.socket.SocketHandler.close()
+        SocketHandler.close()
     }
 
     fun log(message: String) {
@@ -54,28 +50,46 @@ object Glass {
     }
 
     fun sendLog(timestamp: String, log: me.santio.glass.common.models.logs.Loggable, send: Boolean = false) {
-        me.santio.glass.common.Glass.logs.add(me.santio.glass.common.models.logs.Logged(timestamp, log))
-        if (me.santio.glass.common.Glass.logs.size > 500) me.santio.glass.common.Glass.logs.removeAt(0)
+        logs.add(me.santio.glass.common.models.logs.Logged(timestamp, log))
+        if (logs.size > 500) logs.removeAt(0)
 
-        if (send) me.santio.glass.common.Glass.socket?.emit("console:log", me.santio.glass.common.Glass.json.encodeToString(
-            me.santio.glass.common.models.logs.Logged(timestamp, log)
-        ))
+        if (send) socket?.emit(
+            "console:log", json.encodeToString(
+                me.santio.glass.common.models.logs.Logged(timestamp, log)
+            )
+        )
     }
 
     fun updateCount(track: me.santio.glass.common.models.TrackedCount) {
         when (track) {
-            me.santio.glass.common.models.TrackedCount.ONLINE_PLAYERS -> me.santio.glass.common.Glass.socket?.emit("PLAYER_LIST", me.santio.glass.common.Glass.json.encodeToString(
-                me.santio.glass.common.Glass.server.getOnlinePlayers()))
-            me.santio.glass.common.models.TrackedCount.ADMINISTRATOR_PLAYERS -> me.santio.glass.common.Glass.socket?.emit("ADMINISTRATOR_LIST", me.santio.glass.common.Glass.json.encodeToString(
-                me.santio.glass.common.Glass.server.getServerAdministrators()))
-            me.santio.glass.common.models.TrackedCount.WHITELISTED_PLAYERS -> me.santio.glass.common.Glass.socket?.emit("WHITELIST", me.santio.glass.common.Glass.json.encodeToString(
-                me.santio.glass.common.Glass.server.getWhitelistedPlayers()))
-            me.santio.glass.common.models.TrackedCount.BLACKLISTED_PLAYERS -> me.santio.glass.common.Glass.socket?.emit("BLACKLIST", me.santio.glass.common.Glass.json.encodeToString(
-                me.santio.glass.common.Glass.server.getBannedPlayers()))
+            me.santio.glass.common.models.TrackedCount.ONLINE_PLAYERS -> socket?.emit(
+                "PLAYER_LIST", json.encodeToString(
+                    server.getOnlinePlayers()
+                )
+            )
+
+            me.santio.glass.common.models.TrackedCount.ADMINISTRATOR_PLAYERS -> socket?.emit(
+                "ADMINISTRATOR_LIST", json.encodeToString(
+                    server.getServerAdministrators()
+                )
+            )
+
+            me.santio.glass.common.models.TrackedCount.WHITELISTED_PLAYERS -> socket?.emit(
+                "WHITELIST", json.encodeToString(
+                    server.getWhitelistedPlayers()
+                )
+            )
+
+            me.santio.glass.common.models.TrackedCount.BLACKLISTED_PLAYERS -> socket?.emit(
+                "BLACKLIST", json.encodeToString(
+                    server.getBannedPlayers()
+                )
+            )
+
             me.santio.glass.common.models.TrackedCount.ALL -> {
                 me.santio.glass.common.models.TrackedCount.values()
-                    .filter{ it != track }
-                    .forEach { me.santio.glass.common.Glass.updateCount(it) }
+                    .filter { it != track }
+                    .forEach { updateCount(it) }
             }
         }
     }
@@ -83,10 +97,10 @@ object Glass {
     /**
      * Represents all supported server types that glass can recognize
      */
-    enum class ServerType(val root: me.santio.glass.common.Glass.ServerType.Root? = null) {
-        SPIGOT(me.santio.glass.common.Glass.ServerType.Root.BUKKIT),
-        PAPER(me.santio.glass.common.Glass.ServerType.Root.BUKKIT),
-        PURPUR(me.santio.glass.common.Glass.ServerType.Root.BUKKIT),
+    enum class ServerType(val root: Root? = null) {
+        SPIGOT(Root.BUKKIT),
+        PAPER(Root.BUKKIT),
+        PURPUR(Root.BUKKIT),
         BUNGEECORD,
         WATERFALL,
         VELOCITY,
@@ -95,7 +109,7 @@ object Glass {
         ;
 
         companion object {
-            fun fromRoot(root: me.santio.glass.common.Glass.ServerType.Root): Set<me.santio.glass.common.Glass.ServerType> {
+            fun fromRoot(root: Root): Set<ServerType> {
                 return values().filter { it.root == root }.toSet()
             }
         }

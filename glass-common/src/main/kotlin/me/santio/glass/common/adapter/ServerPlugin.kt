@@ -12,13 +12,13 @@ data class ServerPlugin(
     val enabled: Boolean
 ) {
 
-    fun load(): me.santio.glass.common.adapter.ServerPlugin {
-        me.santio.glass.common.Glass.server.loadPlugin(file)
+    fun load(): ServerPlugin {
+        Glass.server.loadPlugin(file)
         return this
     }
 
-    fun unload(): me.santio.glass.common.adapter.ServerPlugin {
-        me.santio.glass.common.Glass.server.unloadPlugin(this)
+    fun unload(): ServerPlugin {
+        Glass.server.unloadPlugin(this)
         return this
     }
 

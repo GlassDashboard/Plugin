@@ -9,6 +9,6 @@ data class FileData(
     var accessible: Boolean,
     var size: Long? = null,
     var content: String? = null,
-    var children: List<me.santio.glass.common.models.packets.FileData>? = null,
+    var children: List<FileData>? = null,
     var error: String? = null
 )

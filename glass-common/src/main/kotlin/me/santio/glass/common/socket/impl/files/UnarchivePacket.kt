@@ -7,14 +7,17 @@ import me.santio.glass.common.GlassFileManager
 import me.santio.glass.common.models.packets.ResolvablePath
 import me.santio.glass.common.socket.SocketEvent
 
-class UnarchivePacket: me.santio.glass.common.socket.SocketEvent("UNARCHIVE_FILE") {
+class UnarchivePacket : SocketEvent("UNARCHIVE_FILE") {
 
     override fun onEvent(vararg data: Any) {
 
-        val path = me.santio.glass.common.Glass.json.decodeFromString<me.santio.glass.common.models.packets.ResolvablePath>(data[0] as String)
+        val path =
+            Glass.json.decodeFromString<ResolvablePath>(
+                data[0] as String
+            )
         val acknowledgement = data[1] as Ack
 
-        me.santio.glass.common.GlassFileManager.unarchive(path)
+        GlassFileManager.unarchive(path)
         acknowledgement.call()
 
     }

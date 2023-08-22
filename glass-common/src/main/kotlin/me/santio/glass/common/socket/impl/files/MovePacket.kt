@@ -7,15 +7,21 @@ import me.santio.glass.common.GlassFileManager
 import me.santio.glass.common.models.packets.ResolvablePath
 import me.santio.glass.common.socket.SocketEvent
 
-class MovePacket: me.santio.glass.common.socket.SocketEvent("MOVE_FILE") {
+class MovePacket : SocketEvent("MOVE_FILE") {
 
     override fun onEvent(vararg data: Any) {
 
-        val from = me.santio.glass.common.Glass.json.decodeFromString<me.santio.glass.common.models.packets.ResolvablePath>(data[0] as String)
-        val to = me.santio.glass.common.Glass.json.decodeFromString<me.santio.glass.common.models.packets.ResolvablePath>(data[1] as String)
+        val from =
+            Glass.json.decodeFromString<ResolvablePath>(
+                data[0] as String
+            )
+        val to =
+            Glass.json.decodeFromString<ResolvablePath>(
+                data[1] as String
+            )
         val acknowledgement = data[2] as Ack
 
-        me.santio.glass.common.GlassFileManager.moveFile(from, to)
+        GlassFileManager.moveFile(from, to)
         acknowledgement.call()
 
     }

@@ -9,10 +9,10 @@ interface ServerAdapter {
     fun getServerVersion(): String
     fun getPluginVersion(): String
 
-    fun getOnlinePlayers(): List<me.santio.glass.common.models.packets.TinyPlayer>
-    fun getWhitelistedPlayers(): List<me.santio.glass.common.models.packets.TinyPlayer>
-    fun getServerAdministrators(): List<me.santio.glass.common.models.packets.TinyPlayer>
-    fun getBannedPlayers(): List<me.santio.glass.common.models.packets.TinyPlayer>
+    fun getOnlinePlayers(): List<TinyPlayer>
+    fun getWhitelistedPlayers(): List<TinyPlayer>
+    fun getServerAdministrators(): List<TinyPlayer>
+    fun getBannedPlayers(): List<TinyPlayer>
 
     fun kickPlayer(uuid: UUID, reason: String): Boolean
     fun banPlayer(uuid: UUID, reason: String): Boolean
@@ -20,7 +20,7 @@ interface ServerAdapter {
     fun setWhitelisted(uuid: UUID, state: Boolean): Boolean
     fun setAdministrator(uuid: UUID, state: Boolean): Boolean
 
-    fun getPlugins(): List<me.santio.glass.common.adapter.ServerPlugin>
-    fun loadPlugin(plugin: File): me.santio.glass.common.adapter.ServerPlugin?
-    fun unloadPlugin(plugin: me.santio.glass.common.adapter.ServerPlugin)
+    fun getPlugins(): List<ServerPlugin>
+    fun loadPlugin(plugin: File): ServerPlugin?
+    fun unloadPlugin(plugin: ServerPlugin)
 }

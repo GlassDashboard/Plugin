@@ -7,15 +7,21 @@ import me.santio.glass.common.GlassFileManager
 import me.santio.glass.common.models.packets.ResolvablePath
 import me.santio.glass.common.socket.SocketEvent
 
-class CopyPacket: me.santio.glass.common.socket.SocketEvent("COPY_FILE") {
+class CopyPacket : SocketEvent("COPY_FILE") {
 
     override fun onEvent(vararg data: Any) {
 
-        val from = me.santio.glass.common.Glass.json.decodeFromString<me.santio.glass.common.models.packets.ResolvablePath>(data[0] as String)
-        val to = me.santio.glass.common.Glass.json.decodeFromString<me.santio.glass.common.models.packets.ResolvablePath>(data[1] as String)
+        val from =
+            Glass.json.decodeFromString<ResolvablePath>(
+                data[0] as String
+            )
+        val to =
+            Glass.json.decodeFromString<ResolvablePath>(
+                data[1] as String
+            )
         val acknowledgement = data[2] as Ack
 
-        me.santio.glass.common.GlassFileManager.copyFile(from, to)
+        GlassFileManager.copyFile(from, to)
         acknowledgement.call()
 
     }

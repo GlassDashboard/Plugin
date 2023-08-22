@@ -8,7 +8,7 @@ import me.santio.glass.common.GlassPluginManager
 import me.santio.glass.common.socket.SocketEvent
 import java.io.File
 
-class DownloadPluginPacket: me.santio.glass.common.socket.SocketEvent("DOWNLOAD_PLUGIN") {
+class DownloadPluginPacket : SocketEvent("DOWNLOAD_PLUGIN") {
 
     override fun onEvent(vararg data: Any): Unit = runBlocking {
 
@@ -18,7 +18,7 @@ class DownloadPluginPacket: me.santio.glass.common.socket.SocketEvent("DOWNLOAD_
 
         launch {
             Unirest.get(url)
-                .asFile(File(me.santio.glass.common.GlassPluginManager.pluginFolder, "$name.jar").absolutePath)
+                .asFile(File(GlassPluginManager.pluginFolder, "$name.jar").absolutePath)
                 .body
 
             ack.call(true)

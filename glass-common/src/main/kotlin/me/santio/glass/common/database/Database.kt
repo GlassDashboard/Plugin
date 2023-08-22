@@ -14,22 +14,22 @@ object Database {
 
     fun connect() {
         try {
-            val path = me.santio.glass.common.GlassFileManager.DB_FILE
+            val path = GlassFileManager.DB_FILE
             path.mkdirs()
 
             val url = "jdbc:sqlite:${path.absolutePath}"
-            me.santio.glass.common.database.Database.connection = DriverManager.getConnection(url)
-            me.santio.glass.common.Glass.log("Successfully connected to database.")
+            connection = DriverManager.getConnection(url)
+            Glass.log("Successfully connected to database.")
 
-            me.santio.glass.common.database.Database.initTables()
+            initTables()
         } catch (e: SQLException) {
-            me.santio.glass.common.Glass.log("[ERROR] Failed to establish connection to database.")
+            Glass.log("[ERROR] Failed to establish connection to database.")
             println(e.message)
         }
     }
 
     private fun initTables() {
-        me.santio.glass.common.database.Database.connection.prepareStatement(
+        connection.prepareStatement(
             """
                 CREATE TABLE IF NOT EXISTS plugins(
                     id INTEGER      PRIMARY KEY AUTO_INCREMENT,
@@ -39,7 +39,7 @@ object Database {
             """.trimIndent()
         ).execute()
 
-        me.santio.glass.common.database.Database.connection.prepareStatement(
+        connection.prepareStatement(
             """
                 CREATE TABLE IF NOT EXISTS audit_log(
                     id INTEGER      PRIMARY KEY AUTO_INCREMENT,

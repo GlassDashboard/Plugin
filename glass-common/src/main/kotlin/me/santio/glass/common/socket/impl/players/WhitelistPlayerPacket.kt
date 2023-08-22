@@ -5,7 +5,7 @@ import me.santio.glass.common.Glass
 import me.santio.glass.common.socket.SocketEvent
 import java.util.*
 
-class WhitelistPlayerPacket: me.santio.glass.common.socket.SocketEvent("SET_WHITELIST") {
+class WhitelistPlayerPacket : SocketEvent("SET_WHITELIST") {
 
     override fun onEvent(vararg data: Any) {
 
@@ -13,7 +13,7 @@ class WhitelistPlayerPacket: me.santio.glass.common.socket.SocketEvent("SET_WHIT
         val state: Boolean = data[1] as Boolean
         val acknowledgement = data[2] as Ack
 
-        val success = me.santio.glass.common.Glass.server.setWhitelisted(uuid, state)
+        val success = Glass.server.setWhitelisted(uuid, state)
         acknowledgement.call(success)
 
     }

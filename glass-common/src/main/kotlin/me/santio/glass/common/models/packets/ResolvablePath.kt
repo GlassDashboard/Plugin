@@ -7,13 +7,13 @@ import me.santio.glass.common.GlassFileManager
 import java.io.File
 
 @Serializable
-data class ResolvablePath (
+data class ResolvablePath(
     val path: String,
     val root: Boolean = false
 ) {
 
     fun getFile(): File {
-        return me.santio.glass.common.GlassFileManager.fileFromPath(path, root)
+        return GlassFileManager.fileFromPath(path, root)
     }
 
     fun isDirectoryRecursive(): Boolean {
@@ -30,7 +30,7 @@ data class ResolvablePath (
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is me.santio.glass.common.models.packets.ResolvablePath) return false
+        if (other !is ResolvablePath) return false
         return other.getFile().absolutePath == getFile().absolutePath
     }
 }

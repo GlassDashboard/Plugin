@@ -5,7 +5,7 @@ import me.santio.glass.common.Glass
 import me.santio.glass.common.socket.SocketEvent
 import java.util.*
 
-class BanPlayerPacket: me.santio.glass.common.socket.SocketEvent("BAN_PLAYER") {
+class BanPlayerPacket : SocketEvent("BAN_PLAYER") {
 
     override fun onEvent(vararg data: Any) {
 
@@ -16,7 +16,7 @@ class BanPlayerPacket: me.santio.glass.common.socket.SocketEvent("BAN_PLAYER") {
 
         val acknowledgement = data[2] as Ack
 
-        val success = me.santio.glass.common.Glass.server.banPlayer(uuid, reason)
+        val success = Glass.server.banPlayer(uuid, reason)
         acknowledgement.call(success)
 
     }

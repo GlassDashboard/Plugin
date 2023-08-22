@@ -5,10 +5,8 @@ import io.socket.emitter.Emitter
 import me.santio.glass.common.models.packets.FileMetadata
 import me.santio.glass.common.models.packets.ResolvablePath
 import me.santio.glass.common.socket.SocketHandler
-import me.santio.glass.common.utils.Zipper
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.absolutePathString
@@ -19,9 +17,9 @@ import kotlin.io.path.absolutePathString
 object GlassFileManager {
 
     private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb")
-    private val UPLOADING: MutableMap<String, me.santio.glass.common.models.packets.ResolvablePath> = mutableMapOf()
+    private val UPLOADING: MutableMap<String, ResolvablePath> = mutableMapOf()
     val HOME_DIR: String = Path.of("").absolutePathString()
-    val DB_FILE = File("${me.santio.glass.common.GlassFileManager.HOME_DIR}/.glass/data.db")
+    val DB_FILE = File("$HOME_DIR/.glass/data.db")
 
     /**
      * Creates a simple metadata object from a file. This will not
@@ -29,16 +27,16 @@ object GlassFileManager {
      * @param file The file to create the metadata from.
      * @return The metadata object.
      */
-    private fun composeMetadata(file: File): me.santio.glass.common.models.packets.FileMetadata? {
+    private fun composeMetadata(file: File): FileMetadata? {
         val size = if (file.isDirectory) -1 else file.length()
         val content: String? = if (file.isDirectory) null else if (size < 3 * 1024 * 1024) {
             file.readText()
         } else "File is too large to read."
 
         return try {
-            me.santio.glass.common.models.packets.FileMetadata(
+            FileMetadata(
                 file.name,
-                file.absolutePath.removePrefix(me.santio.glass.common.GlassFileManager.HOME_DIR).ifBlank { "/" },
+                file.absolutePath.removePrefix(HOME_DIR).ifBlank { "/" },
                 file.isDirectory,
                 size,
                 file.lastModified(),
@@ -57,7 +55,10 @@ object GlassFileManager {
      * @return The metadata object.
      */
     @JvmOverloads
-    fun getFileMetadata(path: me.santio.glass.common.models.packets.ResolvablePath, recursive: Boolean = false): me.santio.glass.common.models.packets.FileMetadata? {
+    fun getFileMetadata(
+        path: ResolvablePath,
+        recursive: Boolean = false
+    ): FileMetadata? {
         val file = path.getFile()
         if (!file.exists()) return null
 
@@ -65,19 +66,19 @@ object GlassFileManager {
 
             if (recursive) {
                 file.listFiles()?.mapNotNull {
-                    me.santio.glass.common.GlassFileManager.getFileMetadata(
-                        me.santio.glass.common.GlassFileManager.absoluteToResolvable(
+                    getFileMetadata(
+                        absoluteToResolvable(
                             it.absolutePath
                         )
                     )
                 }
             } else {
-                file.listFiles()?.mapNotNull { me.santio.glass.common.GlassFileManager.composeMetadata(it) }
+                file.listFiles()?.mapNotNull { composeMetadata(it) }
             } ?: listOf()
 
         } else listOf()
 
-        return me.santio.glass.common.GlassFileManager.composeMetadata(file)?.copy(children = children)
+        return composeMetadata(file)?.copy(children = children)
     }
 
     /**
@@ -91,8 +92,9 @@ object GlassFileManager {
         if (!path.startsWith("/")) newPath = "/$path"
         if (root) return File(path)
 
-        if (path.startsWith(me.santio.glass.common.GlassFileManager.HOME_DIR)) newPath = path.substring(me.santio.glass.common.GlassFileManager.HOME_DIR.length)
-        newPath = me.santio.glass.common.GlassFileManager.HOME_DIR + newPath
+        if (path.startsWith(HOME_DIR)) newPath =
+            path.substring(HOME_DIR.length)
+        newPath = HOME_DIR + newPath
 
         return File(newPath)
     }
@@ -103,14 +105,14 @@ object GlassFileManager {
      * @param path The absolute path.
      * @return The resolvable path.
      */
-    fun absoluteToResolvable(path: String): me.santio.glass.common.models.packets.ResolvablePath {
-        if (path.startsWith(me.santio.glass.common.GlassFileManager.HOME_DIR)) return me.santio.glass.common.models.packets.ResolvablePath(
-            path.substring(me.santio.glass.common.GlassFileManager.HOME_DIR.length)
+    fun absoluteToResolvable(path: String): ResolvablePath {
+        if (path.startsWith(HOME_DIR)) return ResolvablePath(
+            path.substring(HOME_DIR.length)
         )
-        return me.santio.glass.common.models.packets.ResolvablePath(path)
+        return ResolvablePath(path)
     }
 
-    fun createFile(location: me.santio.glass.common.models.packets.ResolvablePath) {
+    fun createFile(location: ResolvablePath) {
         val file = location.getFile()
         if (file.exists()) return
 
@@ -118,14 +120,14 @@ object GlassFileManager {
         file.createNewFile()
     }
 
-    fun writeFile(location: me.santio.glass.common.models.packets.ResolvablePath, content: String) {
+    fun writeFile(location: ResolvablePath, content: String) {
         val file = location.getFile()
         if (!file.exists()) return
 
         file.writeText(content)
     }
 
-    fun downloadFile(location: me.santio.glass.common.models.packets.ResolvablePath, acknowledgement: Ack) {
+    fun downloadFile(location: ResolvablePath, acknowledgement: Ack) {
         val file = location.getFile()
         if (!file.exists()) return
 
@@ -137,17 +139,17 @@ object GlassFileManager {
             val zip = me.santio.glass.common.utils.Zipper.zipFolder(file)
             if (zip != null) {
                 acknowledgement.call(id, zip.length())
-                me.santio.glass.common.socket.SocketHandler.sendFile(room, zip) {
+                SocketHandler.sendFile(room, zip) {
                     zip.delete()
                 }
             }
         } else {
-            me.santio.glass.common.socket.SocketHandler.sendFile(room, file)
+            SocketHandler.sendFile(room, file)
             acknowledgement.call(id, file.length())
         }
     }
 
-    fun uploadFile(location: me.santio.glass.common.models.packets.ResolvablePath, id: String) {
+    fun uploadFile(location: ResolvablePath, id: String) {
         val file = location.getFile()
         if (!file.exists()) {
             if (!file.parentFile.exists()) file.parentFile.mkdirs()
@@ -155,7 +157,7 @@ object GlassFileManager {
         }
 
         // id provided here is a 'trusted' source, so we don't need to encode the command
-        me.santio.glass.common.GlassFileManager.UPLOADING[id] = location
+        UPLOADING[id] = location
         val stream = file.outputStream()
 
         val listener = Emitter.Listener { args ->
@@ -163,16 +165,16 @@ object GlassFileManager {
             stream.write(chunk)
         }
 
-        me.santio.glass.common.Glass.socket?.on("BUFFER-$id", listener)
+        Glass.socket?.on("BUFFER-$id", listener)
 
-        me.santio.glass.common.Glass.socket?.once("EOF-$id") {
+        Glass.socket?.once("EOF-$id") {
             stream.close()
-            me.santio.glass.common.Glass.socket?.off("BUFFER-$id", listener)
-            me.santio.glass.common.GlassFileManager.UPLOADING.remove(id)
+            Glass.socket?.off("BUFFER-$id", listener)
+            UPLOADING.remove(id)
         }
     }
 
-    fun deleteFile(location: me.santio.glass.common.models.packets.ResolvablePath) {
+    fun deleteFile(location: ResolvablePath) {
         val file = location.getFile()
         if (!file.exists()) return
 
@@ -180,7 +182,7 @@ object GlassFileManager {
         else file.delete()
     }
 
-    fun createDirectory(location: me.santio.glass.common.models.packets.ResolvablePath): String? {
+    fun createDirectory(location: ResolvablePath): String? {
         val file = location.getFile()
         if (file.exists()) return null
 
@@ -188,7 +190,10 @@ object GlassFileManager {
         return location.getTopDirectory()
     }
 
-    fun moveFile(previous: me.santio.glass.common.models.packets.ResolvablePath, next: me.santio.glass.common.models.packets.ResolvablePath) {
+    fun moveFile(
+        previous: ResolvablePath,
+        next: ResolvablePath
+    ) {
         val previousFile = previous.getFile()
         val nextFile = next.getFile()
         if (!previousFile.exists()) return
@@ -197,7 +202,10 @@ object GlassFileManager {
         previousFile.renameTo(nextFile)
     }
 
-    fun copyFile(previous: me.santio.glass.common.models.packets.ResolvablePath, to: me.santio.glass.common.models.packets.ResolvablePath) {
+    fun copyFile(
+        previous: ResolvablePath,
+        to: ResolvablePath
+    ) {
         val previousFile = previous.getFile()
         val nextFile = to.getFile()
         if (!previousFile.exists()) return
@@ -206,7 +214,7 @@ object GlassFileManager {
         previousFile.copyTo(nextFile)
     }
 
-    fun unarchive(path: me.santio.glass.common.models.packets.ResolvablePath) {
+    fun unarchive(path: ResolvablePath) {
         val file = path.getFile()
         if (!file.exists()) return
 
