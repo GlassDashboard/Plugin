@@ -4,11 +4,11 @@
 
 	<parent>
 		<groupId>me.santio</groupId>
-		<artifactId>mhweb</artifactId>
+		<artifactId>glass</artifactId>
 		<version>1.0</version>
 	</parent>
 
-	<artifactId>mhweb-bungeecord</artifactId>
+	<artifactId>glass-bungeecord</artifactId>
 	<packaging>jar</packaging>
 
 	<name>MHWeb BungeeCord</name>
@@ -50,7 +50,7 @@
 		</dependency>
 		<dependency>
 			<groupId>me.santio</groupId>
-			<artifactId>mhweb-common</artifactId>
+			<artifactId>glass-common</artifactId>
 			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>

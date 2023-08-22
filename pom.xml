@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>me.santio</groupId>
-	<artifactId>mhweb</artifactId>
+	<artifactId>glass</artifactId>
 	<version>1.1.0</version>
 	<packaging>pom</packaging>
 
@@ -87,10 +87,10 @@
 	</build>
 
 	<modules>
-		<module>mhweb-common</module>
-		<module>mhweb-spigot</module>
-		<module>mhweb-bungeecord</module>
-		<module>mhweb-velocity</module>
-		<module>mhweb-plugin</module>
+		<module>glass-common</module>
+		<module>glass-spigot</module>
+		<module>glass-bungeecord</module>
+		<module>glass-velocity</module>
+		<module>glass-plugin</module>
 	</modules>
 </project>
