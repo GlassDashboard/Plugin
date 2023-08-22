@@ -1,12 +1,12 @@
-//package me.santio.mhweb.common.socket.impl.files
+//package me.santio.glass.common.socket.impl.files
 //
 //import io.socket.client.Ack
 //import kotlinx.serialization.decodeFromString
 //import kotlinx.serialization.encodeToString
-//import me.santio.mhweb.common.Glass
-//import me.santio.mhweb.common.GlassFileManager
-//import me.santio.mhweb.common.models.packets.ResolvablePath
-//import me.santio.mhweb.common.socket.SocketEvent
+//import me.santio.glass.common.Glass
+//import me.santio.glass.common.GlassFileManager
+//import me.santio.glass.common.models.packets.ResolvablePath
+//import me.santio.glass.common.socket.SocketEvent
 //
 //class FetchFilePacket: SocketEvent("FETCH_FILE") {
 //

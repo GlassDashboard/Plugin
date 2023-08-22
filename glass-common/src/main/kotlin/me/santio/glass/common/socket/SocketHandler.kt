@@ -129,7 +129,7 @@ object SocketHandler {
     }
 
     private fun loadEvents() {
-        val reflections = Reflections("me.santio.mhweb.common.socket.impl")
+        val reflections = Reflections("me.santio.glass.common.socket.impl")
         val events = reflections.getSubTypesOf(me.santio.glass.common.socket.SocketEvent::class.java)
 
         events.forEach { clazz ->

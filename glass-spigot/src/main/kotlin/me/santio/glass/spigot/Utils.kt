@@ -1,6 +1,6 @@
 package me.santio.glass.spigot
 
-import me.santio.mhweb.common.adapter.ServerPlugin
+import me.santio.glass.common.adapter.ServerPlugin
 import org.bukkit.plugin.Plugin
 import java.io.File
 

@@ -1,7 +1,7 @@
 package me.santio.glass.spigot.listeners
 
-import me.santio.mhweb.common.Glass
-import me.santio.mhweb.common.models.TrackedCount
+import me.santio.glass.common.Glass
+import me.santio.glass.common.models.TrackedCount
 import me.santio.glass.spigot.GlassSpigot
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler

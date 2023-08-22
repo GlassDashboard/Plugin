@@ -1,7 +1,7 @@
 package me.santio.glass.spigot.tasks
 
-import me.santio.mhweb.common.Glass
-import me.santio.mhweb.common.models.TrackedCount
+import me.santio.glass.common.Glass
+import me.santio.glass.common.models.TrackedCount
 import org.bukkit.Bukkit
 
 object WhitelistCheckTask: Runnable {

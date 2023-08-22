@@ -1,7 +1,7 @@
 package me.santio.glass.spigot.logger
 
-import me.santio.mhweb.common.Glass
-import me.santio.mhweb.common.models.logs.impl.ConsoleLog
+import me.santio.glass.common.Glass
+import me.santio.glass.common.models.logs.impl.ConsoleLog
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.LogEvent
 import org.apache.logging.log4j.core.Logger

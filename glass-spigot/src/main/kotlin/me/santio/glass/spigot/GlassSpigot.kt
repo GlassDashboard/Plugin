@@ -1,6 +1,6 @@
 package me.santio.glass.spigot
 
-import me.santio.mhweb.common.Glass
+import me.santio.glass.common.Glass
 import me.santio.glass.spigot.listeners.PlayerListeners
 import me.santio.glass.spigot.logger.LogAppender
 import me.santio.glass.spigot.tasks.BanlistCheckTask

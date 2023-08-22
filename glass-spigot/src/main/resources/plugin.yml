@@ -1,6 +1,6 @@
 name: Glass
 version: '${project.version}'
-main: me.santio.mhweb.spigot.GlassSpigot
+main: me.santio.glass.spigot.GlassSpigot
 api-version: 1.13
 authors: [ Santio71 ]
 description: '${project.description}'

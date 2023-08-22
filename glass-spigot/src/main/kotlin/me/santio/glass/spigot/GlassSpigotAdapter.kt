@@ -1,9 +1,9 @@
 package me.santio.glass.spigot
 
 import kong.unirest.Unirest
-import me.santio.mhweb.common.adapter.ServerAdapter
-import me.santio.mhweb.common.adapter.ServerPlugin
-import me.santio.mhweb.common.models.packets.TinyPlayer
+import me.santio.glass.common.adapter.ServerAdapter
+import me.santio.glass.common.adapter.ServerPlugin
+import me.santio.glass.common.models.packets.TinyPlayer
 import org.bukkit.BanList
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
