@@ -57,7 +57,7 @@ object Glass {
         logs.add(Logged(timestamp, log))
         if (logs.size > 500) logs.removeAt(0)
 
-        if (send) socket?.emit("CONSOLE_LOG", json.encodeToString(Logged(timestamp, log)))
+        if (send) socket?.emit("console:log", json.encodeToString(Logged(timestamp, log)))
     }
 
     fun updateCount(track: TrackedCount) {
@@ -74,7 +74,29 @@ object Glass {
         }
     }
 
-    enum class ServerType {
-        SPIGOT, PAPER, BUNGEECORD, WATERFALL, VELOCITY, FORGE, FABRIC
+    /**
+     * Represents all supported server types that glass can recognize
+     */
+    enum class ServerType(val root: Root? = null) {
+        SPIGOT(Root.BUKKIT),
+        PAPER(Root.BUKKIT),
+        PURPUR(Root.BUKKIT),
+        BUNGEECORD,
+        WATERFALL,
+        VELOCITY,
+        FORGE,
+        FABRIC,
+        ;
+
+        companion object {
+            fun fromRoot(root: Root): Set<ServerType> {
+                return values().filter { it.root == root }.toSet()
+            }
+        }
+
+        enum class Root {
+            BUKKIT,
+            ;
+        }
     }
 }

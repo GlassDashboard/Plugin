@@ -3,6 +3,7 @@ package me.santio.mhweb.common.socket
 import io.socket.client.IO
 import io.socket.client.Socket
 import me.santio.mhweb.common.Glass
+import me.santio.mhweb.common.models.packets.ResolvablePath
 import org.json.JSONObject
 import org.reflections.Reflections
 import java.io.File
@@ -12,49 +13,68 @@ import kotlin.concurrent.schedule
 
 object SocketHandler {
 
+    private var connectionFailed = false
+
     fun connect(uri: String, token: String): Socket {
         Glass.log("Connecting to Glass WebSocket...")
 
+        val auth = mapOf(
+            "origin" to "server",
+            "token" to token,
+            "server_type" to Glass.serverType.name,
+            "server_version" to Glass.server.getServerVersion(),
+            "plugin_version" to Glass.server.getPluginVersion()
+        )
+
         val socket =  IO.Options.builder()
             .setPath("/socket")
-            .setAuth(mapOf(
-                "token" to token,
-                "type" to "PLUGIN",
-                "minecraft" to Glass.serverType.name,
-                "version" to Glass.server.getServerVersion()
-            ))
+            .setAuth(auth)
+            .setReconnectionAttempts(0)
             .build()
             .let { IO.socket(uri, it).connect() }
 
+        Glass.socket = socket
+
         socket.on("connect") {
             Glass.log("Connected to Glass WebSocket!")
+            connectionFailed = false
             loadEvents()
         }
 
         socket.on("connect_error") {
-            Glass.log("Failed to connect to Glass WebSocket!")
+            if (!connectionFailed) {
+                connectionFailed = true
+                Glass.log("Failed to connect to Glass WebSocket!")
+            }
 
             val error = it[0] as? JSONObject
             if (error != null) {
                 Glass.log(error.getString("message"))
 
-                Glass.log("Server type: ${Glass.serverType.name}")
-                Glass.log("Server version: ${Glass.server.getServerVersion()}")
+                if (error.getString("message") == "Invalid authentication data") {
+                    Glass.log("Authentication data:")
+
+                    for (key in auth.keys) {
+                        Glass.log("$key: ${if (key == "token") "<hidden>" else auth[key]}")
+                    }
+                }
             }
         }
 
-        // Backend goes offline, give it 20s to come back online before trying to go through reconnecting
+        // Backend goes offline, give it a bit to come back online before trying to go through reconnecting
         socket.on("disconnect") {
             Glass.log("Disconnected from Glass WebSocket!")
             socket.off()
 
             Timer("GlassReconnect", false).schedule(5000) {
+                Glass.socket?.close()
                 connect(uri, token)
             }
         }
 
         socket.on("reconnect") {
             Glass.log("Reconnected to Glass WebSocket!")
+            connectionFailed = false
             loadEvents()
         }
 
@@ -114,8 +134,16 @@ object SocketHandler {
 
         events.forEach { clazz ->
             val event = clazz.getDeclaredConstructor().newInstance()
-            Glass.socket?.on(event.name.uppercase()) { event.onEvent(*it) }
+            Glass.socket?.on(event.name) { event.onEvent(*it) }
         }
+    }
+
+    // Extensions
+    fun JSONObject.toPath(): ResolvablePath {
+        return ResolvablePath(
+            this.getString("path"),
+            this.getBoolean("root")
+        )
     }
 
 }

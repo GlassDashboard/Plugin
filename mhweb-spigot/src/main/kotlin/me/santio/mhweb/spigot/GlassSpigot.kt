@@ -13,7 +13,6 @@ class GlassSpigot : JavaPlugin(), Listener {
 
     companion object {
         fun getInstance() = getPlugin(GlassSpigot::class.java)
-
         var appender: LogAppender? = null
     }
 
@@ -33,13 +32,14 @@ class GlassSpigot : JavaPlugin(), Listener {
             return
         }
 
-        // Check if the server is a spigot or paper server
-        val serverType = if (server.bukkitVersion.contains("Paper")
-            || server.version.contains("Paper")) Glass.ServerType.PAPER
-        else Glass.ServerType.SPIGOT
+        // Determine server type
+        val serverType = Glass.ServerType
+            .fromRoot(Glass.ServerType.Root.BUKKIT)
+            .find { isServerType(it) }
+            ?: Glass.ServerType.SPIGOT
 
         // Login to glass
-        Glass.setServerToken(config.getString("base_uri")!!,config.getString("token")!!, serverType)
+        Glass.setServerToken(config.getString("base_uri")!!, config.getString("token")!!, serverType)
 
         // Register listeners
         appender = LogAppender()
@@ -54,6 +54,10 @@ class GlassSpigot : JavaPlugin(), Listener {
     override fun onDisable() {
         Glass.close()
         appender?.close()
+    }
+
+    private fun isServerType(type: Glass.ServerType): Boolean {
+        return server.bukkitVersion.contains(type.name, true) || server.version.contains(type.name, true)
     }
 
 }

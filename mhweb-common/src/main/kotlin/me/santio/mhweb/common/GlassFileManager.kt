@@ -2,8 +2,8 @@ package me.santio.mhweb.common
 
 import io.socket.client.Ack
 import io.socket.emitter.Emitter
-import me.santio.mhweb.common.models.packets.FileData
-import me.santio.mhweb.common.models.packets.FileLocation
+import me.santio.mhweb.common.models.packets.FileMetadata
+import me.santio.mhweb.common.models.packets.ResolvablePath
 import me.santio.mhweb.common.socket.SocketHandler
 import me.santio.mhweb.common.utils.Zipper
 import java.io.File
@@ -19,10 +19,67 @@ import kotlin.io.path.absolutePathString
 object GlassFileManager {
 
     private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb")
-    private val UPLOADING: MutableMap<String, FileLocation> = mutableMapOf()
-    val HOME_DIR: String = System.getenv("ROOT_SERVER") ?: System.getenv("HOME") ?: System.getenv("user.dir") ?: Path.of("").toAbsolutePath().absolutePathString()
+    private val UPLOADING: MutableMap<String, ResolvablePath> = mutableMapOf()
+    val HOME_DIR: String = Path.of("").absolutePathString()
     val DB_FILE = File("$HOME_DIR/.glass/data.db")
 
+    /**
+     * Creates a simple metadata object from a file. This will not
+     * propagate the children.
+     * @param file The file to create the metadata from.
+     * @return The metadata object.
+     */
+    private fun composeMetadata(file: File): FileMetadata? {
+        val size = if (file.isDirectory) -1 else file.length()
+        val content: String? = if (file.isDirectory) null else if (size < 3 * 1024 * 1024) {
+            file.readText()
+        } else "File is too large to read."
+
+        return try {
+            FileMetadata(
+                file.name,
+                file.absolutePath.removePrefix(HOME_DIR).ifBlank { "/" },
+                file.isDirectory,
+                size,
+                file.lastModified(),
+                content,
+                listOf()
+            )
+        } catch (e: IOException) {
+            null
+        }
+    }
+
+    /**
+     * Gets the metadata of a file.
+     * @param path The path to the file.
+     * @param recursive Whether to get the children of the children.
+     * @return The metadata object.
+     */
+    @JvmOverloads
+    fun getFileMetadata(path: ResolvablePath, recursive: Boolean = false): FileMetadata? {
+        val file = path.getFile()
+        if (!file.exists()) return null
+
+        val children = if (file.isDirectory) {
+
+            if (recursive) {
+                file.listFiles()?.mapNotNull { getFileMetadata(absoluteToResolvable(it.absolutePath)) }
+            } else {
+                file.listFiles()?.mapNotNull { composeMetadata(it) }
+            } ?: listOf()
+
+        } else listOf()
+
+        return composeMetadata(file)?.copy(children = children)
+    }
+
+    /**
+     * Converts a resolvable oath data to a file object.
+     * @param path The path to the file.
+     * @param root Whether to use absolute pathing.
+     * @return A java file object.
+     */
     fun fileFromPath(path: String, root: Boolean = false): File {
         var newPath = path
         if (!path.startsWith("/")) newPath = "/$path"
@@ -34,62 +91,18 @@ object GlassFileManager {
         return File(newPath)
     }
 
-    fun fetchFile(path: String, minimal: Boolean = false, absolute: Boolean = false, root: Boolean = false): FileData {
-        val file = fileFromPath(path, root = root)
-        if (!file.exists()) return FileData(path, directory = false, accessible = false, error = "File does not exist")
-
-        try {
-            val size = Files.size(file.toPath())
-            val directory = file.isDirectory
-            val name = file.name
-            val fileData = FileData(
-                if (absolute) file.absolutePath.substring(HOME_DIR.length) else name,
-                directory,
-                true,
-                size
-            )
-            if (minimal) return fileData
-
-            val cleanPath = (if (HOME_DIR.endsWith("/")) HOME_DIR.substring(0, HOME_DIR.length-1) else HOME_DIR) + path
-            if (directory && LOCKED_DIRECTORIES.contains(cleanPath)) {
-                fileData.accessible = false
-                fileData.error = "You are not permitted to access this resource!"
-                return fileData
-            }
-
-            if (!directory) {
-                if (size > 3 * 1024 * 1024) {
-                    fileData.content = "File is too large to be displayed"
-                } else {
-                    fileData.content = file.readText()
-                }
-            } else {
-                val children: MutableList<FileData> = mutableListOf()
-                file.listFiles()?.forEach { children.add(fetchFile(it.absolutePath, true)) }
-                fileData.children = children
-            }
-
-            return fileData
-        } catch(e: SecurityException) {
-            return FileData(file.name, directory = false, accessible = false, error = "You are not permitted to access this resource!")
-        } catch(e: IOException) {
-            return FileData(file.name, directory = false, accessible = false, error = "An error occurred while reading the file metadata!")
-        }
+    /**
+     * Takes in an absolute path and converts it to a resolvable path. Used to assist in
+     * making the code easier to work with.
+     * @param path The absolute path.
+     * @return The resolvable path.
+     */
+    fun absoluteToResolvable(path: String): ResolvablePath {
+        if (path.startsWith(HOME_DIR)) return ResolvablePath(path.substring(HOME_DIR.length))
+        return ResolvablePath(path)
     }
 
-    fun fetchAllFiles(path: String, root: Boolean = false): List<FileData> {
-        val homePath = fileFromPath(path, root).absolutePath
-
-        val files: MutableList<FileData> = mutableListOf()
-        val home = File(homePath)
-        home.walk().forEach {
-            files.add(fetchFile(it.absolutePath, minimal = true, absolute = true))
-        }
-
-        return files
-    }
-
-    fun createFile(location: FileLocation) {
+    fun createFile(location: ResolvablePath) {
         val file = location.getFile()
         if (file.exists()) return
 
@@ -97,7 +110,14 @@ object GlassFileManager {
         file.createNewFile()
     }
 
-    fun downloadFile(location: FileLocation, acknowledgement: Ack) {
+    fun writeFile(location: ResolvablePath, content: String) {
+        val file = location.getFile()
+        if (!file.exists()) return
+
+        file.writeText(content)
+    }
+
+    fun downloadFile(location: ResolvablePath, acknowledgement: Ack) {
         val file = location.getFile()
         if (!file.exists()) return
 
@@ -119,7 +139,7 @@ object GlassFileManager {
         }
     }
 
-    fun uploadFile(location: FileLocation, id: String) {
+    fun uploadFile(location: ResolvablePath, id: String) {
         val file = location.getFile()
         if (!file.exists()) {
             if (!file.parentFile.exists()) file.parentFile.mkdirs()
@@ -144,7 +164,7 @@ object GlassFileManager {
         }
     }
 
-    fun deleteFile(location: FileLocation) {
+    fun deleteFile(location: ResolvablePath) {
         val file = location.getFile()
         if (!file.exists()) return
 
@@ -152,7 +172,7 @@ object GlassFileManager {
         else file.delete()
     }
 
-    fun createDirectory(location: FileLocation): String? {
+    fun createDirectory(location: ResolvablePath): String? {
         val file = location.getFile()
         if (file.exists()) return null
 
@@ -160,7 +180,7 @@ object GlassFileManager {
         return location.getTopDirectory()
     }
 
-    fun moveFile(previous: FileLocation, next: FileLocation) {
+    fun moveFile(previous: ResolvablePath, next: ResolvablePath) {
         val previousFile = previous.getFile()
         val nextFile = next.getFile()
         if (!previousFile.exists()) return
@@ -169,7 +189,7 @@ object GlassFileManager {
         previousFile.renameTo(nextFile)
     }
 
-    fun copyFile(previous: FileLocation, to: FileLocation) {
+    fun copyFile(previous: ResolvablePath, to: ResolvablePath) {
         val previousFile = previous.getFile()
         val nextFile = to.getFile()
         if (!previousFile.exists()) return
@@ -178,7 +198,7 @@ object GlassFileManager {
         previousFile.copyTo(nextFile)
     }
 
-    fun unarchive(path: FileLocation) {
+    fun unarchive(path: ResolvablePath) {
         val file = path.getFile()
         if (!file.exists()) return
 

@@ -41,10 +41,10 @@ object Database {
 
         connection.prepareStatement(
             """
-                CREATE TABLE IF NOT EXISTS player_logs(
+                CREATE TABLE IF NOT EXISTS audit_log(
                     id INTEGER      PRIMARY KEY AUTO_INCREMENT,
-                    player TEXT     NOT NULL,
-                    action TEXT     NOT NULL,
+                    user TEXT       NOT NULL,
+                    message TEXT    NOT NULL,
                     timestamp TEXT  NOT NULL
                 );
             """.trimIndent()

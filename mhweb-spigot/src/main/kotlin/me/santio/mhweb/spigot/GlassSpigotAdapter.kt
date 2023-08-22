@@ -40,6 +40,10 @@ object GlassSpigotAdapter: ServerAdapter {
         return Bukkit.getServer().bukkitVersion.split("-")[0]
     }
 
+    override fun getPluginVersion(): String {
+        return GlassSpigot.getInstance().description.version
+    }
+
     override fun getOnlinePlayers(): List<TinyPlayer> {
         return Bukkit.getServer().onlinePlayers.map { it.toTinyPlayer() }
     }

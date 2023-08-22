@@ -7,6 +7,7 @@ import java.util.*
 interface ServerAdapter {
     fun executeCommand(command: String)
     fun getServerVersion(): String
+    fun getPluginVersion(): String
 
     fun getOnlinePlayers(): List<TinyPlayer>
     fun getWhitelistedPlayers(): List<TinyPlayer>

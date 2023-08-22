@@ -22,6 +22,8 @@ object Zipper {
 
     fun unzip(source: File) {
         val zip = ZipFile(source)
+        if (!zip.isValidZipFile) return
+
         zip.extractAll(source.parentFile.absolutePath)
     }
 

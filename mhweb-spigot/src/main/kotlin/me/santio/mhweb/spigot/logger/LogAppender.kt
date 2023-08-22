@@ -21,8 +21,10 @@ class LogAppender: AbstractAppender("Glass", null, null, false, Property.EMPTY_A
 
     override fun append(e: LogEvent) {
         // Get bytes from log
-        val bytes = e.message.formattedMessage.toByteArray()
-        val message = String(bytes, Charsets.UTF_8)
+        val message: String = if (e.message.throwable != null) {
+            "${e.message.formattedMessage}\n${e.message.throwable.message}\n" +
+            e.message.throwable.stackTrace.joinToString("\n") { it.toString() }
+        } else String(e.message.formattedMessage.toByteArray(), Charsets.UTF_8)
 
         // Send log to glass
         Glass.sendLog(
