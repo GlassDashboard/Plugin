@@ -17,7 +17,9 @@ import kotlin.io.path.absolutePathString
 object GlassFileManager {
 
     private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb")
+    private val UNREADABLE_EXT: Set<String> = setOf("jar", "zip", "exe", "db", "dat", "dll", "gz", "png")
     private val UPLOADING: MutableMap<String, ResolvablePath> = mutableMapOf()
+
     val HOME_DIR: String = Path.of("").absolutePathString()
     val DB_FILE = File("$HOME_DIR/.glass/data.db")
 
@@ -29,7 +31,9 @@ object GlassFileManager {
      */
     private fun composeMetadata(file: File): FileMetadata? {
         val size = if (file.isDirectory) -1 else file.length()
-        val content: String? = if (file.isDirectory) null else if (size < 3 * 1024 * 1024) {
+        val shouldRead = !UNREADABLE_EXT.contains(file.extension) && size < 2 * 1024 * 1024
+
+        val content: String? = if (file.isDirectory) null else if (shouldRead) {
             file.readText()
         } else "File is too large to read."
 
