@@ -13,11 +13,11 @@ class MovePacket : SocketEvent("MOVE_FILE") {
 
         val from =
             Glass.json.decodeFromString<ResolvablePath>(
-                data[0] as String
+                data[0].toString()
             )
         val to =
             Glass.json.decodeFromString<ResolvablePath>(
-                data[1] as String
+                data[1].toString()
             )
         val acknowledgement = data[2] as Ack
 

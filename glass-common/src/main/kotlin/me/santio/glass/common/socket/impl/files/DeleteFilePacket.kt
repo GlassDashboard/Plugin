@@ -13,7 +13,7 @@ class DeleteFilePacket : SocketEvent("file:delete") {
 
         val location =
             Glass.json.decodeFromString<ResolvablePath>(
-                data[0] as String
+                data[0].toString()
             )
         val acknowledgement = data[1] as Ack
 

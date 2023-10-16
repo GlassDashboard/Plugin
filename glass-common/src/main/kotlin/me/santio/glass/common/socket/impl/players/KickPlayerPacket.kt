@@ -9,7 +9,7 @@ class KickPlayerPacket : SocketEvent("KICK_PLAYER") {
 
     override fun onEvent(vararg data: Any) {
 
-        val uuid = UUID.fromString(data[0] as String)
+        val uuid = UUID.fromString(data[0].toString())
 
         var reason: String? = data[1] as String?
         if (reason == null) reason = "No reason provided"

@@ -26,6 +26,12 @@ class GlassSpigot : JavaPlugin(), Listener {
             return
         }
 
+        if (!config.contains("websocket_uri")) {
+            Glass.log("Invalid websocket_uri provided, please repair your config.yml")
+            isEnabled = false
+            return
+        }
+
         if (!config.contains("token")) {
             Glass.log("Please enter your token in the config.yml in /plugins/Glass/config.yml")
             isEnabled = false
@@ -39,7 +45,12 @@ class GlassSpigot : JavaPlugin(), Listener {
             ?: Glass.ServerType.SPIGOT
 
         // Login to glass
-        Glass.setServerToken(config.getString("base_uri")!!, config.getString("token")!!, serverType)
+        Glass.setServerToken(
+            config.getString("base_uri")!!,
+            config.getString("websocket_uri")!!,
+            config.getString("token")!!,
+            serverType
+        )
 
         // Register listeners
         appender = LogAppender()

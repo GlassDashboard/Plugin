@@ -9,7 +9,7 @@ class PardonPlayerPacket : SocketEvent("PARDON_PLAYER") {
 
     override fun onEvent(vararg data: Any) {
 
-        val uuid = UUID.fromString(data[0] as String)
+        val uuid = UUID.fromString(data[0].toString())
         val acknowledgement = data[1] as Ack
 
         val success = Glass.server.pardonPlayer(uuid)

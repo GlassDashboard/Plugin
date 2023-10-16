@@ -132,6 +132,7 @@ object SocketHandler {
         val reflections = Reflections("me.santio.glass.common.socket.impl")
         val events = reflections.getSubTypesOf(SocketEvent::class.java)
 
+        println("Registering events")
         events.forEach { clazz ->
             val event = clazz.getDeclaredConstructor().newInstance()
             Glass.socket?.on(event.name) { event.onEvent(*it) }

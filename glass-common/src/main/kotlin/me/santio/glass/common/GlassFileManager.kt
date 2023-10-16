@@ -1,22 +1,22 @@
 package me.santio.glass.common
 
-import io.socket.client.Ack
 import io.socket.emitter.Emitter
+import kong.unirest.Unirest
 import me.santio.glass.common.models.packets.FileMetadata
 import me.santio.glass.common.models.packets.ResolvablePath
-import me.santio.glass.common.socket.SocketHandler
+import me.santio.glass.common.utils.Zipper
 import java.io.File
 import java.io.IOException
+import java.net.URI
 import java.nio.file.Path
-import java.util.*
+import java.util.function.Consumer
 import kotlin.io.path.absolutePathString
 
 // Presents a file manager wrapper for the server.
-
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object GlassFileManager {
 
-    private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb")
+    private val LOCKED_DIRECTORIES: Set<String> = setOf("/__resources", "/plugins/Glass", "/plugins/MHWeb", "/.glass")
     private val UNREADABLE_EXT: Set<String> = setOf("jar", "zip", "exe", "db", "dat", "dll", "gz", "png")
     private val UPLOADING: MutableMap<String, ResolvablePath> = mutableMapOf()
 
@@ -40,7 +40,7 @@ object GlassFileManager {
         return try {
             FileMetadata(
                 file.name,
-                file.absolutePath.removePrefix(HOME_DIR).ifBlank { "/" },
+                file.relativePath(),
                 file.isDirectory,
                 size,
                 file.lastModified(),
@@ -69,7 +69,7 @@ object GlassFileManager {
         val children = if (file.isDirectory) {
 
             if (recursive) {
-                file.listFiles()?.mapNotNull {
+                file.listPublicFiles().mapNotNull {
                     getFileMetadata(
                         absoluteToResolvable(
                             it.absolutePath
@@ -77,8 +77,8 @@ object GlassFileManager {
                     )
                 }
             } else {
-                file.listFiles()?.mapNotNull { composeMetadata(it) }
-            } ?: listOf()
+                file.listPublicFiles().mapNotNull { composeMetadata(it) }
+            }
 
         } else listOf()
 
@@ -116,6 +116,10 @@ object GlassFileManager {
         return ResolvablePath(path)
     }
 
+    /**
+     * Create an empty file at the given location, and create the parent directories if they don't exist.
+     * @param location The location to create the file.
+     */
     fun createFile(location: ResolvablePath) {
         val file = location.getFile()
         if (file.exists()) return
@@ -124,6 +128,11 @@ object GlassFileManager {
         file.createNewFile()
     }
 
+    /**
+     * Write the given content to the file at the given location.
+     * @param location The location of the file.
+     * @param content The content to write.
+     */
     fun writeFile(location: ResolvablePath, content: String) {
         val file = location.getFile()
         if (!file.exists()) return
@@ -131,26 +140,23 @@ object GlassFileManager {
         file.writeText(content)
     }
 
-    fun downloadFile(location: ResolvablePath, acknowledgement: Ack) {
-        val file = location.getFile()
-        if (!file.exists()) return
+    /**
+     * Download a file from the given url to the given location.
+     * @param location The location to download the file to.
+     * @param url The url to download the file from.
+     * @param acknowledgement The acknowledgement callback, containing if the download was successful or not.
+     */
+    fun downloadFile(location: File, url: URI, acknowledgement: Consumer<Boolean>) {
+        if (location.exists()) location.deleteRecursively()
+        if (!location.parentFile.exists()) location.parentFile.mkdirs()
 
-        // Prefixed since this is not a trusted source
-        val id = UUID.randomUUID().toString()
-        val room = "download-$id"
-
-        if (file.isDirectory) {
-            val zip = me.santio.glass.common.utils.Zipper.zipFolder(file)
-            if (zip != null) {
-                acknowledgement.call(id, zip.length())
-                SocketHandler.sendFile(room, zip) {
-                    zip.delete()
-                }
+        Unirest.get(url.toString())
+            .asFile(location.absolutePath)
+            .ifSuccess { acknowledgement.accept(true) }
+            .ifFailure {
+                acknowledgement.accept(false)
+                println(it.statusText)
             }
-        } else {
-            SocketHandler.sendFile(room, file)
-            acknowledgement.call(id, file.length())
-        }
     }
 
     fun uploadFile(location: ResolvablePath, id: String) {
@@ -178,6 +184,10 @@ object GlassFileManager {
         }
     }
 
+    /**
+     * Delete a file at the given location.
+     * @param location The location of the file.
+     */
     fun deleteFile(location: ResolvablePath) {
         val file = location.getFile()
         if (!file.exists()) return
@@ -186,6 +196,11 @@ object GlassFileManager {
         else file.delete()
     }
 
+    /**
+     * Create a directory at the given location.
+     * @param location The location to create the directory.
+     * @return The top directory of the created directory.
+     */
     fun createDirectory(location: ResolvablePath): String? {
         val file = location.getFile()
         if (file.exists()) return null
@@ -194,6 +209,11 @@ object GlassFileManager {
         return location.getTopDirectory()
     }
 
+    /**
+     * Move a file from the previous location to the next location.
+     * @param previous The previous location of the file.
+     * @param next The next location of the file.
+     */
     fun moveFile(
         previous: ResolvablePath,
         next: ResolvablePath
@@ -206,6 +226,11 @@ object GlassFileManager {
         previousFile.renameTo(nextFile)
     }
 
+    /**
+     * Copy a file from the previous location to the next location.
+     * @param previous The previous location of the file.
+     * @param to The next location of the file.
+     */
     fun copyFile(
         previous: ResolvablePath,
         to: ResolvablePath
@@ -218,11 +243,25 @@ object GlassFileManager {
         previousFile.copyTo(nextFile)
     }
 
+    /**
+     * Unarchive a .zip file at the given location.
+     */
     fun unarchive(path: ResolvablePath) {
         val file = path.getFile()
         if (!file.exists()) return
 
-        me.santio.glass.common.utils.Zipper.unzip(file)
+        Zipper.unzip(file)
+    }
+
+    // Extensions
+    fun File.relativePath(): String {
+        return this.absolutePath.removePrefix(HOME_DIR).ifBlank { "/" }
+    }
+
+    fun File.listPublicFiles(): List<File> {
+        return this.listFiles()?.filter {
+            it.relativePath() !in LOCKED_DIRECTORIES
+        } ?: listOf()
     }
 
 }

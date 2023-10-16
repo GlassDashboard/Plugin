@@ -12,8 +12,8 @@ class DownloadPluginPacket : SocketEvent("DOWNLOAD_PLUGIN") {
 
     override fun onEvent(vararg data: Any): Unit = runBlocking {
 
-        val name = data[0] as String
-        val url = data[1] as String
+        val name = data[0].toString()
+        val url = data[1].toString()
         val ack = data[2] as Ack
 
         launch {

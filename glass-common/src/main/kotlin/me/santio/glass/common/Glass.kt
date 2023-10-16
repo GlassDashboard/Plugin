@@ -6,16 +6,20 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import me.santio.glass.common.adapter.ServerAdapter
+import me.santio.glass.common.models.TrackedCount
+import me.santio.glass.common.models.logs.Loggable
+import me.santio.glass.common.models.logs.Logged
 import me.santio.glass.common.models.logs.impl.CommandLog
 import me.santio.glass.common.models.logs.impl.ConsoleLog
 import me.santio.glass.common.socket.SocketHandler
 
 object Glass {
-    lateinit var server: me.santio.glass.common.adapter.ServerAdapter
+    lateinit var server: ServerAdapter
 
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(me.santio.glass.common.models.logs.Loggable::class) {
+            polymorphic(Loggable::class) {
                 subclass(CommandLog::class)
                 subclass(ConsoleLog::class)
             }
@@ -23,22 +27,31 @@ object Glass {
     }
 
     var token: String? = null
+        private set
+
     var serverType: ServerType = ServerType.SPIGOT
+        private set
+
     var socket: Socket? = null
+        internal set
 
-    val logs: MutableList<me.santio.glass.common.models.logs.Logged> = mutableListOf()
+    var api_uri: String? = null
+        private set
 
-    fun setServerAdapter(server: me.santio.glass.common.adapter.ServerAdapter) {
+    val logs: MutableList<Logged> = mutableListOf()
+
+    fun setServerAdapter(server: ServerAdapter) {
         Glass.server = server
     }
 
-    fun setServerToken(uri: String, token: String, type: ServerType) {
+    fun setServerToken(uri: String, ws: String, token: String, type: ServerType) {
         Glass.token = token
 
         // Initiate web socket connection to the api server
         log("Attempting to connect to Glass...")
         serverType = type
-        socket = SocketHandler.connect(uri, token)
+        api_uri = uri
+        socket = SocketHandler.connect(ws, token)
     }
 
     fun close() {
@@ -49,45 +62,45 @@ object Glass {
         println("[Glass] $message")
     }
 
-    fun sendLog(timestamp: String, log: me.santio.glass.common.models.logs.Loggable, send: Boolean = false) {
-        logs.add(me.santio.glass.common.models.logs.Logged(timestamp, log))
+    fun sendLog(timestamp: String, log: Loggable, send: Boolean = false) {
+        logs.add(Logged(timestamp, log))
         if (logs.size > 500) logs.removeAt(0)
 
         if (send) socket?.emit(
             "console:log", json.encodeToString(
-                me.santio.glass.common.models.logs.Logged(timestamp, log)
+                Logged(timestamp, log)
             )
         )
     }
 
-    fun updateCount(track: me.santio.glass.common.models.TrackedCount) {
+    fun updateCount(track: TrackedCount) {
         when (track) {
-            me.santio.glass.common.models.TrackedCount.ONLINE_PLAYERS -> socket?.emit(
+            TrackedCount.ONLINE_PLAYERS -> socket?.emit(
                 "PLAYER_LIST", json.encodeToString(
                     server.getOnlinePlayers()
                 )
             )
 
-            me.santio.glass.common.models.TrackedCount.ADMINISTRATOR_PLAYERS -> socket?.emit(
+            TrackedCount.ADMINISTRATOR_PLAYERS -> socket?.emit(
                 "ADMINISTRATOR_LIST", json.encodeToString(
                     server.getServerAdministrators()
                 )
             )
 
-            me.santio.glass.common.models.TrackedCount.WHITELISTED_PLAYERS -> socket?.emit(
+            TrackedCount.WHITELISTED_PLAYERS -> socket?.emit(
                 "WHITELIST", json.encodeToString(
                     server.getWhitelistedPlayers()
                 )
             )
 
-            me.santio.glass.common.models.TrackedCount.BLACKLISTED_PLAYERS -> socket?.emit(
+            TrackedCount.BLACKLISTED_PLAYERS -> socket?.emit(
                 "BLACKLIST", json.encodeToString(
                     server.getBannedPlayers()
                 )
             )
 
-            me.santio.glass.common.models.TrackedCount.ALL -> {
-                me.santio.glass.common.models.TrackedCount.values()
+            TrackedCount.ALL -> {
+                TrackedCount.values()
                     .filter { it != track }
                     .forEach { updateCount(it) }
             }

@@ -14,11 +14,11 @@ class ChangeFilePacket : SocketEvent("file:change") {
 
         var location =
             Glass.json.decodeFromString<ResolvablePath>(
-                data[0] as String
+                data[0].toString()
             )
 
         val changes =
-            Glass.json.decodeFromString<FileChanges>(data[1] as String)
+            Glass.json.decodeFromString<FileChanges>(data[1].toString())
         val newPath = changes.path?.let { ResolvablePath(it) }
 
         val acknowledgement = data[2] as Ack

@@ -8,7 +8,7 @@ class UnloadPluginPacket : SocketEvent("LOAD_PLUGIN") {
 
     override fun onEvent(vararg data: Any) {
 
-        val name = data[0] as String
+        val name = data[0].toString()
         val ack = data[1] as Ack
 
         val plugin = GlassPluginManager.getPlugin(name) ?: run {

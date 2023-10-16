@@ -11,7 +11,7 @@ class ExecuteCommandPacket : SocketEvent("console:execute") {
 
     override fun onEvent(vararg data: Any) {
 
-        val command = Glass.json.decodeFromString<Command>(data[0] as String)
+        val command = Glass.json.decodeFromString<Command>(data[0].toString())
         val acknowledgement = data[1] as Ack
 
         Glass.sendLog(

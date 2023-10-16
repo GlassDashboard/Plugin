@@ -12,7 +12,7 @@
 //
 //    override fun onEvent(vararg data: Any) {
 //
-//        val location: ResolvablePath = Glass.json.decodeFromString(data[0] as String)
+//        val location: ResolvablePath = Glass.json.decodeFromString(data[0].toString())
 //        val acknowledgement = data[1] as Ack
 //
 //        val files = GlassFileManager.fetchAllFiles(location.path, location.root)

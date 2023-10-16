@@ -12,8 +12,8 @@ class CreateFilePacket : SocketEvent("file:create") {
     override fun onEvent(vararg data: Any) {
 
         val location: ResolvablePath =
-            Glass.json.decodeFromString(data[0] as String)
-        val type = data[1] as String
+            Glass.json.decodeFromString(data[0].toString())
+        val type = data[1].toString()
         val acknowledgement = data[2] as Ack
 
         if (type.lowercase() == "directory")

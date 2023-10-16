@@ -9,7 +9,7 @@ class PlayerAdministratorPacket : SocketEvent("SET_ADMINISTRATOR") {
 
     override fun onEvent(vararg data: Any) {
 
-        val uuid = UUID.fromString(data[0] as String)
+        val uuid = UUID.fromString(data[0].toString())
         val state: Boolean = data[1] as Boolean
         val acknowledgement = data[2] as Ack
 

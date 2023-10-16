@@ -12,9 +12,9 @@ class UploadPacket : SocketEvent("UPLOAD_FILE") {
 
         val location =
             Glass.json.decodeFromString<ResolvablePath>(
-                data[0] as String
+                data[0].toString()
             )
-        val id = data[1] as String
+        val id = data[1].toString()
 
         GlassFileManager.uploadFile(location, id)
 

@@ -13,9 +13,9 @@ class WriteFilePacket : SocketEvent("file:write") {
 
         val location =
             Glass.json.decodeFromString<ResolvablePath>(
-                data[0] as String
+                data[0].toString()
             )
-        val content = data[1] as String
+        val content = data[1].toString()
         val acknowledgement = data[2] as Ack
 
         GlassFileManager.writeFile(location, content)
