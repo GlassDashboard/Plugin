@@ -1,7 +1,7 @@
 package me.santio.glass.common
 
 import io.socket.emitter.Emitter
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import me.santio.glass.common.models.packets.FileMetadata
 import me.santio.glass.common.models.packets.ResolvablePath
 import me.santio.glass.common.utils.Zipper

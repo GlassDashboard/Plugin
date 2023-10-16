@@ -1,6 +1,6 @@
 package me.santio.glass.spigot
 
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import me.santio.glass.common.adapter.ServerAdapter
 import me.santio.glass.common.adapter.ServerPlugin
 import me.santio.glass.common.models.packets.TinyPlayer

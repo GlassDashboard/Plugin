@@ -1,7 +1,7 @@
 package me.santio.glass.common.socket.impl.plugins
 
 import io.socket.client.Ack
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.santio.glass.common.GlassPluginManager
